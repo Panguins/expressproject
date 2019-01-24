@@ -33,6 +33,57 @@ const userSchema = new mongoose.Schema({
   timestamps: true,
 });
 
+
+
+userSchema.statics = {
+
+  async get(id) {
+    try {
+      let user;
+
+      if (mongoose.Types.ObjectId.isValid(id)) {
+        user = await this.findById(id).exec()
+      }
+      if (user) {
+        return user 
+      }
+
+      throw new Error({
+        message: 'User does not exist'
+      })
+    } catch (error) {
+      throw error
+    }
+  },
+
+  
+
+  
+  /**
+   * List in descending order of 'createdAt' timestamp.
+   *
+   * @param {number} skip - Number to be skipped.
+   * @param {number} limit - Limit number to be returned.
+   */
+  list({
+    page = 1,
+    perPage = 10,
+    username,
+  }) {
+    const options = omitBy({
+      username,
+    }, isNil)
+
+    return this.find(options)
+      .sort({
+        createdAt: -1,
+      })
+      .skip(perPage * (page - 1))
+      .limit(perPage)
+      .exec()
+  },
+}
+
 // Override toJSON to avoid sending sensitive fields
 userSchema.methods.toJSON = function() {
 	return {
@@ -64,51 +115,5 @@ userSchema.plugin(passportLocalMongoose, {
 });
 
 
-userSchema.statics = {
-
-  async get(id) {
-    try {
-      let user;
-
-      if (mongoose.Types.ObjectId.isValid(id)) {
-        user = await this.findById(id).exec()
-      }
-      if (user) {
-        return user 
-      }
-
-      throw new Error({
-        message: 'User does not exist'
-      })
-    } catch (error) {
-      throw error
-    }
-  },
-
-  
-  /**
-   * List in descending order of 'createdAt' timestamp.
-   *
-   * @param {number} skip - Number to be skipped.
-   * @param {number} limit - Limit number to be returned.
-   */
-  list({
-    page = 1,
-    perPage = 10,
-    username,
-  }) {
-    const options = omitBy({
-      username,
-    }, isNil)
-
-    return this.find(options)
-      .sort({
-        createdAt: -1,
-      })
-      .skip(perPage * (page - 1))
-      .limit(perPage)
-      .exec()
-  },
-}
   
 module.exports = mongoose.model('User', userSchema)
