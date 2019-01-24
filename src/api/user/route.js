@@ -8,20 +8,21 @@ const router = express.Router()
 
 router
     .route('/')
-    .get(controller.list)
-    .post(controller.create)
+    .get(passport.authenticate('jwt', { session: false }),controller.list)
+    .post(passport.authenticate('jwt', { session: false }),controller.create)
   
 router
     .param('userId', controller.load)
     .route('/:userId')
-    .get(controller.get)
-    .patch(controller.update)
-    .delete(controller.remove)
+    .get(passport.authenticate('jwt', { session: false }),controller.get)
+    .patch(passport.authenticate('jwt', { session: false }),controller.update)
+    .delete(passport.authenticate('jwt', { session: false }),controller.remove)
 
 // Login
 router
     .route('/login')
-    .post(passport.authenticate('local'),controller.login);
+    .post(passport.authenticate('local'),controller.login)
+    .patch(passport.authenticate('local'),controller.update)
 
 // Register
 router
